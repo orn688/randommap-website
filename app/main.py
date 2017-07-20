@@ -11,8 +11,9 @@ APP_DIR = os.environ['APP_DIR']
 IMAGES_DIR = APP_DIR + '/images'
 
 app = Flask(__name__)
-redis = StrictRedis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'])
-mapbox = Static()
+redis = StrictRedis(host=os.environ['REDIS_HOST'],
+                    port=os.environ['REDIS_PORT'])
+mapbox = Static() # Must have MAPBOX_ACCESS_TOKEN set
 
 
 # Helpers
