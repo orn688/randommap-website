@@ -1,28 +1,34 @@
 from flask import Flask, send_from_directory
 from redis import StrictRedis
+from mapbox import Static
 from datetime import datetime, timedelta
 import os
 
 
+DEBUG=True
+
 APP_DIR = os.environ['APP_DIR']
 IMAGES_DIR = APP_DIR + '/images'
-DEBUG=True
 
 app = Flask(__name__)
 redis = StrictRedis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'])
+mapbox = Static()
 
 
 # Helpers
+def fetch_new_image(lat, lon):
+    response = mapbox.image('mapbox.satellite', lon=lon, lat=lat, z=12)
+    if response.status_code != 200:
+        raise
+    # TODO: 
+
 
 def is_current_image_valid():
-    current_image_timestamp = redis.get('current_image_timestamp')
-    return current_image_timestamp is not None and \
-           datetime.now() - current_image < timedelta(minutes=1)
+    return redis.exists('current_image')
 
 
 def is_next_image_valid():
-    # TODO
-    return True
+    return redis.exists('next_image')
 
 
 def random_coords():
@@ -39,9 +45,10 @@ def index():
     return 'RandomMap Chrome Extension' + str(redis.get('hits'))
 
 
-@app.route('/api/v1/image')
+@app.route('/image')
 def current_image():
     if is_current_image_valid():
+        # TODO: return current image
         return send_from_directory(IMAGES_DIR, 'current_image.png')
     elif is_next_image_valid():
         # TODO: asynchronously copy next_image to current_image, and download a
@@ -50,9 +57,6 @@ def current_image():
     else:
         # TODO: Gotta start somewhere
         pass
-
-
-
 
 
 if __name__ == '__main__':
