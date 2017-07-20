@@ -10,6 +10,8 @@ services:
       - ./app:/app
     environment:
       - REDIS_HOST=redis
+    env_file:
+      - app.env
     ports:
       - "5000:5000"
 
