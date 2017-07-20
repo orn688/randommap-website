@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 import os
 
 
-DEBUG=True
-
+DEBUG=os.environ['DEBUG']
 APP_DIR = os.environ['APP_DIR']
 IMAGES_DIR = APP_DIR + '/images'
 

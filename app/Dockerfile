@@ -12,6 +12,7 @@ COPY ./requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY . .
+RUN source .env
 
 EXPOSE $FLASK_PORT
 
