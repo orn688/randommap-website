@@ -4,7 +4,7 @@ ENV FLASK_PORT 5000
 ENV REDIS_PORT 6379
 ENV APP_DIR /app
 
-# These will be overridden by Docker Compose
+# These will be overridden by Docker Compose with values from ../app.env
 ENV REDIS_HOST localhost
 ENV DEBUG true
 ENV MAPBOX_ACCESS_TOKEN dummy_token
