@@ -1,30 +1,25 @@
 from flask import Flask, send_from_directory
 from redis import StrictRedis
-from mapbox import Static
+from . import mapbox
 from datetime import datetime, timedelta
 import random
 import os
 
+CONFIG_NAME_MAPPER = {
+    'production': 'config.ProductionConfig',
+    'development': 'config.DevelopmentConfig'
+}
 
 app = Flask(__name__)
-redis = StrictRedis(host=os.environ['REDIS_HOST'],
-                    port=os.environ['REDIS_PORT'])
-mapbox = Static() if 'MAPBOX_ACCESS_TOKEN' in os.environ else None
-
-app.config['DEBUG']=os.environ['DEBUG']
-app.config['APP_DIR'] = os.environ['APP_DIR']
-app.config['IMAGES_DIR'] = APP_DIR + '/images'
-app.config['IMAGE_EXPIRE_TIME'] = {'ex': 60}
+app.config.from_object(CONFIG_NAME_MAPPER['development']) # TODO
+redis = FlaskRedis(app)
+mapbox = MapboxClient(app) # TODO implement this
 
 
 # Helpers
-class RandomMapRedis(StrictRedis):
-    # TODO
-    pass
 
-
-def fetch_new_image(lat, lon, image_file):
-    response = mapbox.image('mapbox.satellite', lon=lon, lat=lat, z=12,
+def fetch_new_image(lat, lon, zoom, image_file):
+    response = mapbox.image('mapbox.satellite', lon=lon, lat=lat, z=zoom,
                             width=1280, height=1280)
     if response.status_code != 200:
         raise
@@ -59,11 +54,13 @@ def index():
 def image():
     if not redis.exists('current_lat'):
         lat, lon = random_coords()
-        redis.set('current_lat', lat, ex=60)
-        redis.set('current_lon', lon, ex=60)
-        fetch_new_image(lat, lon, app.config['IMAGES_DIR'] + '/current_image.png')
+        zoom = 7
+        redis.set('current_lat', lat, **app.config['IMAGE_EXPIRE_TIME'])
+        redis.set('current_lon', lon, **app.config['IMAGE_EXPIRE_TIME'])
+        fetch_new_image(lat, lon, zoom,
+            os.path.join(app.config['IMAGES_DIR'], 'current_image.png'))
     return send_from_directory(app.config['IMAGES_DIR'], 'current_image.png')
 
 
 if __name__ == '__main__':
-    app.run(debug=DEBUG, host='0.0.0.0')
+    app.run(host='0.0.0.0')
