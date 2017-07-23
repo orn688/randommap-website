@@ -1,22 +1,10 @@
-from flask import current_app
+from collections import namedtuple
 from datetime import datetime
 import os
 
 
-class SatelliteImage:
-    def __init__(self, lat, lon, zoom, filename, timestamp):
-        self.lat = lat
-        self.lon = lon
-        self.zoom = zoom
-        self.filename = filename
-        self.timestamp = timestamp
-
-    def __str__(self):
-        return self.filename
-
-    def __repr__(self):
-        return 'SatelliteImage({})'.format(
-            ', '.join(f'{attr}={val}' for attr, val in self.__dict__.items()))
+SatelliteImage = namedtuple('SatelliteImage', ['lat', 'lon', 'zoom',
+                                               'filename', 'timestamp'])
 
 
 class ImageContext:
