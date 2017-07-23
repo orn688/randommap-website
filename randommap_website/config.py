@@ -8,6 +8,7 @@ class BaseConfig(object):
     REDIS_PORT = os.environ['REDIS_PORT']
     REDIS_DB = 0
 
+    APP_PORT = os.environ['APP_PORT']
     APP_DIR = os.environ['APP_DIR'] 
     IMAGES_DIR = os.path.join(APP_DIR, 'images')
 

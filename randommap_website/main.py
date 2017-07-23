@@ -1,21 +1,17 @@
-from flask import Flask, send_from_directory
+from sanic import Sanic, response
 from redis import StrictRedis
 from mapbox import Static
 from datetime import datetime
 import random
 import os
 
+import config
 from geography import choose_coords
 from image_context import ImageContext
 
 
-CONFIG_NAME_MAPPER = {
-    'production': 'config.ProductionConfig',
-    'development': 'config.DevelopmentConfig'
-}
-
-app = Flask(__name__)
-app.config.from_object(CONFIG_NAME_MAPPER['development']) # TODO
+app = Sanic(__name__)
+app.config.from_object(config.DevelopmentConfig()) # TODO
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'],
                     db=app.config['REDIS_DB'],
@@ -28,15 +24,16 @@ image_context = ImageContext(app, redis, mapbox, choose_coords)
 # Routes 
 
 @app.route('/')
-def index():
-    return 'RandomMap Chrome Extension'
+async def index():
+    return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
 @app.route('/image')
-def image():
-    return send_from_directory(image_context.images_dir,
-                               image_context.get_image().filename)
+async def image(request):
+    return_image = await image_context.get_image()
+    image_path = os.path.join(image_context.images_dir, return_image.filename)
+    return await response.file(image_path)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=app.config['APP_PORT'])

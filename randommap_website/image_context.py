@@ -33,60 +33,65 @@ class ImageContext:
     def init_app(self, app):
         pass
 
-    def get_image(self):
+    async def get_image(self):
         """
         To be called externally; calls only top-level internal methods without
         itself accessing Redis.
         """
-        if self.is_current_image_valid():
-            return_image = self.get_current_image()
+        if await self.is_current_image_valid():
+            return_image = await self.get_current_image()
         else:
             # Current image is expired; return the next image (downloading it
             # first, if necessary), and throw away the old one while
             # downloading a new next image.
-            return_image = self.get_next_image()
+            return_image = await self.get_next_image()
             if not return_image:
-                return_image = self.fetch_new_image()
-                self.set_next_image(return_image)
-            self.update_image() # TODO: do this asynchronously
+                return_image = await self.fetch_new_image()
+                await self.set_next_image(return_image)
+            self.update_image()
         return return_image
 
-    def get_current_image(self):
-        return self.get_image_by_key(self.current_image_key)
+    async def get_current_image(self):
+        return await self.get_image_by_key(self.current_image_key)
 
-    def get_next_image(self):
-        return self.get_image_by_key(self.next_image_key)
+    async def get_next_image(self):
+        return await self.get_image_by_key(self.next_image_key)
 
-    def get_image_by_key(self, image_key):
+    async def get_image_by_key(self, image_key):
         image_dict = self.redis.hgetall(image_key)
         return SatelliteImage(**image_dict) if image_dict else None
 
-    def is_current_image_valid(self):
+    async def is_current_image_valid(self):
         return bool(self.redis.get(self.current_image_valid_key))
 
-    def set_current_image_valid(self, valid=True):
+    async def set_current_image_valid(self, valid=True):
         self.redis.set(self.current_image_valid_key, valid,
                        ex=self.expire_time)
 
-    def set_next_image(self, image):
-        self.redis.hmset(self.next_image_key, image._asdict())
+    async def set_current_image(self, image):
+        await self.set_image_by_key(self.current_image_key, image)
 
-    def update_image(self):
+    async def set_next_image(self, image):
+        await self.set_image_by_key(self.next_image_key, image)
+
+    async def set_image_by_key(self, image_key, image):
+        self.redis.hmset(image_key, image._asdict())
+
+    async def update_image(self):
         """
         Swap 
         """
         # Remove the old image if it exists, and swap in the next image's data
-        current_image = self.get_current_image()
+        current_image = await self.get_current_image()
         if current_image:
             os.remove(os.path.join(self.images_dir, current_image.filename))
-        self.redis.hmset(self.current_image_key,
-                         self.get_next_image()._asdict())
-        self.set_current_image_valid()
+        await self.set_current_image(await self.get_next_image())
+        await self.set_current_image_valid()
 
-        new_image = self.fetch_new_image()
-        self.set_next_image(new_image)
+        new_image = await self.fetch_new_image()
+        await self.set_next_image(new_image)
 
-    def fetch_new_image(self):
+    async def fetch_new_image(self):
         # Assemble metadata for new image
         lat, lon = self.choose_coords()
         zoom = 7 # TODO
@@ -96,16 +101,16 @@ class ImageContext:
 
         # Download new image
         new_image_path = os.path.join(self.images_dir, new_image.filename)
-        image_data = self.image_at_coords(lat, lon, zoom)
-        self.write_data_to_file(image_data, new_image_path)
+        image_data = await self.image_at_coords(lat, lon, zoom)
+        await self.write_data_to_file(image_data, new_image_path)
 
         return new_image
 
-    def write_data_to_file(self, data, filename):
+    async def write_data_to_file(self, data, filename):
         with open(filename, 'wb') as f:
             _ = f.write(data)
 
-    def image_at_coords(self, lat, lon, zoom):
+    async def image_at_coords(self, lat, lon, zoom):
         response = self.mapbox.image('mapbox.satellite', lon=lon, lat=lat,
                                      z=zoom, width=1280, height=1280)
         if response.status_code == 200:
