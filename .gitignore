@@ -3,6 +3,9 @@
 ### Redis ###
 dump.rdb
 
+### Temporary image files ###
+*/images/*.png
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
