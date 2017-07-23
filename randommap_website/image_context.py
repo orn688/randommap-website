@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from random import random
 import os
 
 
@@ -27,13 +28,12 @@ class ImageContext:
         self.current_image_key = current_image_key
         self.next_image_key = next_image_key
         self.current_image_valid_key = current_image_valid_key
-        self.expire_time = {'ex': 60} # TODO
+        self.expire_time = app.config['IMAGE_EXPIRE_TIME']
 
     def init_app(self, app):
         pass
 
-    @property
-    def image(self):
+    def get_image(self):
         """
         To be called externally; calls only top-level internal methods without
         itself accessing Redis.
@@ -52,12 +52,12 @@ class ImageContext:
         return return_image
 
     def get_current_image(self):
-        return self.get_image(self.current_image_key)
+        return self.get_image_by_key(self.current_image_key)
 
     def get_next_image(self):
-        return self.get_image(self.next_image_key)
+        return self.get_image_by_key(self.next_image_key)
 
-    def get_image(self, image_key):
+    def get_image_by_key(self, image_key):
         image_dict = self.redis.hgetall(image_key)
         return SatelliteImage(**image_dict) if image_dict else None
 
@@ -65,10 +65,11 @@ class ImageContext:
         return bool(self.redis.get(self.current_image_valid_key))
 
     def set_current_image_valid(self, valid=True):
-        self.redis.set(self.current_image_valid_key, valid, **self.expire_time)
+        self.redis.set(self.current_image_valid_key, valid,
+                       ex=self.expire_time)
 
     def set_next_image(self, image):
-        self.redis.hmset(self.next_image_key, image.__dict__)
+        self.redis.hmset(self.next_image_key, image._asdict())
 
     def update_image(self):
         """
@@ -79,7 +80,7 @@ class ImageContext:
         if current_image:
             os.remove(os.path.join(self.images_dir, current_image.filename))
         self.redis.hmset(self.current_image_key,
-                         self.get_next_image().__dict__)
+                         self.get_next_image()._asdict())
         self.set_current_image_valid()
 
         new_image = self.fetch_new_image()

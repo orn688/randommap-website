@@ -12,7 +12,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - FLASK_PORT=${FLASK_PORT}
-    env_file: app.env
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}
     ports:
       - "${FLASK_PORT}:5000"
 

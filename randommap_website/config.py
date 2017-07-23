@@ -6,12 +6,12 @@ class BaseConfig(object):
 
     REDIS_HOST = os.environ['REDIS_HOST']
     REDIS_PORT = os.environ['REDIS_PORT']
-    REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+    REDIS_DB = 0
 
     APP_DIR = os.environ['APP_DIR'] 
     IMAGES_DIR = os.path.join(APP_DIR, 'images')
 
-    IMAGE_EXPIRE_TIME={'ex': 60} # For passing to Redis.set()
+    IMAGE_EXPIRE_TIME = 60 # seconds
 
 
 class ProductionConfig(BaseConfig):
