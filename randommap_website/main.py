@@ -24,7 +24,7 @@ image_context = ImageContext(app, redis, mapbox, choose_coords)
 # Routes 
 
 @app.route('/')
-async def index():
+async def index(request):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
