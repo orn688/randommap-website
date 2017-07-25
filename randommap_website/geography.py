@@ -1,9 +1,12 @@
+"""
+Helper functions for dealing with geography.
+"""
 import random
 
 
 def choose_coords():
     """
-    Function to choose a random latitude and longitude.
+    Choose a random latitude and longitude within certain ranges.
     Returns: tuple(float, float)
     """
     max_lat = 80

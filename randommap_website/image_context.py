@@ -7,6 +7,10 @@ import os
 SatelliteImage = namedtuple('SatelliteImage', ['lat', 'lon', 'zoom',
                                                'filename', 'timestamp'])
 
+async def write_data_to_file(data, filename):
+    with open(filename, 'wb') as f:
+        _ = f.write(data)
+
 
 class ImageContext:
     """
@@ -102,13 +106,9 @@ class ImageContext:
         # Download new image
         new_image_path = os.path.join(self.images_dir, new_image.filename)
         image_data = await self.image_at_coords(lat, lon, zoom)
-        await self.write_data_to_file(image_data, new_image_path)
+        await write_data_to_file(image_data, new_image_path)
 
         return new_image
-
-    async def write_data_to_file(self, data, filename):
-        with open(filename, 'wb') as f:
-            _ = f.write(data)
 
     async def image_at_coords(self, lat, lon, zoom):
         response = self.mapbox.image('mapbox.satellite', lon=lon, lat=lat,
