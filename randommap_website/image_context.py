@@ -52,7 +52,7 @@ class ImageContext:
             if not return_image:
                 return_image = await self.fetch_new_image()
                 await self.set_next_image(return_image)
-            self.app.add_task(self.update_image())
+            await self.update_image()
         return return_image
 
     async def get_current_image(self):
