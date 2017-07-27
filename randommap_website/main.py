@@ -6,8 +6,7 @@ import random
 import os
 
 import config
-from geography import choose_coords
-from image_context import ImageContext
+from helpers import *
 
 
 app = Sanic(__name__)
@@ -17,7 +16,31 @@ redis = StrictRedis(host=app.config['REDIS_HOST'],
                     db=app.config['REDIS_DB'],
                     decode_responses=True)
 mapbox = Static()
-image_context = ImageContext(app, redis, mapbox, choose_coords)
+redis_wrapper = RedisWrapper(app, redis, mapbox, choose_coords)
+
+
+# High-level helpers
+
+async def random_image_metadata():
+    lat, lon = choose_coords()
+    zoom = 7
+    timestamp = datetime.now().timestamp(),
+    return SatelliteImage(lat, lon, zoom, timestamp,
+                          filename=str(int(timestamp)) + '.png')
+
+
+async def update_image():
+    current_image = redis_wrapper.get_current_image()
+    await remove_file_if_exists(os.path.join(app.config['IMAGE_DIR'] \
+                                + current_image.filename))
+    await redis_wrapper.swap_in_next_image()
+    await redis_wrapper.set_current_image_valid()
+
+    new_image = random_image_metadata() 
+    write_data_to_file(
+        image_at_coords(mapbox, new_image.lat, new_image.lon, new_image.zoom),
+        os.path.join(app.config['IMAGES_DIR'], new_image.filename))
+    await
 
 
 # Routes 
