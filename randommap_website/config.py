@@ -5,8 +5,13 @@ Configuration variables for different environments
 import os
 
 
+CONFIG = {
+    'production': 'config.ProductionConfig',
+    'development': 'config.DevelopmentConfig',
+}
+
+
 class BaseConfig(object):
-    """Default configuration variables."""
     DEBUG = False
 
     REDIS_HOST = os.environ['REDIS_HOST']
@@ -17,14 +22,10 @@ class BaseConfig(object):
     APP_DIR = os.environ['APP_DIR']
     IMAGES_DIR = os.path.join(APP_DIR, 'images')
 
-    IMAGE_EXPIRE_TIME = 60 # seconds
-
+    MAP_EXPIRE_TIME = 60 # seconds
 
 class ProductionConfig(BaseConfig):
-    """Production configuration variables."""
     DEBUG = False
 
-
 class DevelopmentConfig(BaseConfig):
-    """Development configuration variables."""
     DEBUG = True
