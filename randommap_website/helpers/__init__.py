@@ -1,4 +1,5 @@
+# pylint: disable=wildcard-import
 from .geography import *
-from .redis_wrapper import *
+from .randommap_context import *
 from .mapbox import *
 from .files import *

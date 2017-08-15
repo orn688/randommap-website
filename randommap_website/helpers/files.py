@@ -8,7 +8,6 @@ __all__ = ['remove_file_if_exists', 'write_data_to_file']
 
 
 async def remove_file_if_exists(file_path):
-    """Try to remove the given file."""
     try:
         os.remove(file_path)
     except FileNotFoundError:
@@ -18,6 +17,6 @@ async def remove_file_if_exists(file_path):
 
 
 async def write_data_to_file(data, file_path):
-    """Writes raw image data to a file."""
-    with open(file_path, 'wb') as f:
-        _ = f.write(data)
+    """Writes raw bytes to the given file."""
+    with open(file_path, 'wb') as data_file:
+        _ = data_file.write(data)
