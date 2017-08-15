@@ -6,7 +6,7 @@ __all__ = ['MapMetadata', 'RandomMapContext']
 
 # Satellite map metadata class.
 MapMetadata = namedtuple('MapMetadata',
-                         ['lat', 'lon', 'zoom', 'filename', 'timestamp'])
+                         ['lat', 'lon', 'zoom', 'timestamp', 'filename'])
 
 
 class RandomMapContext:

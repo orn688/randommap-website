@@ -13,6 +13,7 @@ ENV DEBUG true
 
 RUN mkdir $APP_DIR
 WORKDIR $APP_DIR
+RUN mkdir maps
 
 COPY ./requirements.txt requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt

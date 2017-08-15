@@ -34,30 +34,36 @@ app_ctx = RandomMapContext(app, redis)
 
 # High-level helpers
 
-async def get_random_map_metadata():
+def get_random_map_metadata():
     lat, lon = choose_coords()
     zoom = 7
-    timestamp = datetime.now().timestamp(),
+    timestamp = datetime.now().timestamp()
     filename = str(int(timestamp)) + '.png'
     return MapMetadata(lat, lon, zoom, timestamp, filename)
 
 
+async def set_next_map():
+    new_map_metadata = get_random_map_metadata()
+    await write_data_to_file(
+        await fetch_map_at_coords(mapbox, new_map_metadata.lat,
+                                  new_map_metadata.lon, new_map_metadata.zoom),
+        path_to_map(new_map_metadata))
+    await app_ctx.set_next_map_metadata(new_map_metadata)
+
+
 async def update_maps():
     current_map_metadata = await app_ctx.get_current_map_metadata()
-    await remove_file_if_exists(await path_to_map(current_map_metadata))
+    if current_map_metadata:
+        await remove_file_if_exists(path_to_map(current_map_metadata))
+
     next_map_metadata = await app_ctx.get_next_map_metadata()
     await app_ctx.set_current_map_metadata(next_map_metadata)
     await app_ctx.set_current_map_valid()
 
-    new_map_metadata = await get_random_map_metadata()
-    await write_data_to_file(
-        await fetch_map_at_coords(mapbox, new_map_metadata.lat,
-                                  new_map_metadata.lon, new_map_metadata.zoom),
-        await path_to_map(new_map_metadata))
-    await app_ctx.set_next_map_metadata(new_map_metadata)
+    await set_next_map()
 
 
-async def path_to_map(map_metadata):
+def path_to_map(map_metadata):
     return os.path.join(app.config['MAPS_DIR'], map_metadata.filename)
 
 
@@ -74,8 +80,12 @@ async def get_map(_):
         map_metadata = await app_ctx.get_current_map_metadata()
     else:
         map_metadata = await app_ctx.get_next_map_metadata()
+        if not map_metadata or not os.path.exists(path_to_map(map_metadata)):
+            # Need to initialize app context
+            await set_next_map()
+            map_metadata = await app_ctx.get_next_map_metadata()
         await update_maps() # TODO: do this asynchronously
-    return await response.file(await path_to_map(map_metadata))
+    return await response.file(path_to_map(map_metadata))
 
 
 if __name__ == '__main__':
