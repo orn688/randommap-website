@@ -42,8 +42,8 @@ def get_random_map_metadata():
     return MapMetadata(lat, lon, zoom, timestamp, filename)
 
 
-def get_map_filename_from_timestamp(timestamp):
-    return ''.join('randommap_', str(int(timestamp)), '.png')
+def map_filename_from_timestamp(timestamp):
+    return ''.join(('randommap_', str(int(timestamp)), '.png'))
 
 
 async def set_next_map():
