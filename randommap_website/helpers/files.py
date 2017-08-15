@@ -11,9 +11,7 @@ async def remove_file_if_exists(file_path):
     try:
         os.remove(file_path)
     except FileNotFoundError:
-        return False
-    else:
-        return True
+        pass
 
 
 async def write_data_to_file(data, file_path):

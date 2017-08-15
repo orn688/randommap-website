@@ -4,7 +4,6 @@
 dump.rdb
 
 ### Temporary map files ###
-maps/
 maps/*.png
 
 ### Python ###
