@@ -1,60 +1,74 @@
+# pylint: disable=invalid-name
+from datetime import datetime
+import os
 from sanic import Sanic, response
 from redis import StrictRedis
 from mapbox import Static
-from datetime import datetime
-import random
-import os
 
 import config
-from helpers import *
+from helpers import (
+    remove_file_if_exists,
+    write_data_to_file,
+    choose_coords,
+    fetch_map_at_coords,
+    MapMetadata,
+    RandomMapContext,
+)
 
 
 app = Sanic(__name__)
-app.config.from_object(config.DevelopmentConfig()) # TODO
+app.config.from_object(config.CONFIG[os.environ['APP_CONFIG']])
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'],
                     db=app.config['REDIS_DB'],
                     decode_responses=True)
 mapbox = Static()
-redis_wrapper = RedisWrapper(app, redis, mapbox, choose_coords)
+app_ctx = RandomMapContext(app, redis)
 
 
 # High-level helpers
 
-async def random_image_metadata():
+async def get_random_map_metadata():
     lat, lon = choose_coords()
     zoom = 7
     timestamp = datetime.now().timestamp(),
-    return SatelliteImage(lat, lon, zoom, timestamp,
-                          filename=str(int(timestamp)) + '.png')
+    filename = str(int(timestamp)) + '.png'
+    return MapMetadata(lat, lon, zoom, timestamp, filename)
 
 
-async def update_image():
-    current_image = redis_wrapper.get_current_image()
-    await remove_file_if_exists(os.path.join(app.config['IMAGE_DIR'] \
-                                + current_image.filename))
-    await redis_wrapper.swap_in_next_image()
-    await redis_wrapper.set_current_image_valid()
+async def update_maps():
+    current_map_metadata = await app_ctx.get_current_map_metadata()
+    await remove_file_if_exists(path_to_map(current_map_metadata))
+    await app_ctx.set_current_map_metadata(app_ctx.get_next_map_metadata())
+    await app_ctx.set_current_map_valid()
 
-    new_image = random_image_metadata() 
-    write_data_to_file(
-        image_at_coords(mapbox, new_image.lat, new_image.lon, new_image.zoom),
-        os.path.join(app.config['IMAGES_DIR'], new_image.filename))
-    await
+    new_map_metadata = await get_random_map_metadata()
+    await write_data_to_file(
+        fetch_map_at_coords(mapbox, new_map_metadata.lat, new_map_metadata.lon,
+                            new_map_metadata.zoom),
+        path_to_map(new_map_metadata))
+    await app_ctx.set_next_map_metadata(new_map_metadata)
 
 
-# Routes 
+async def path_to_map(map_metadata):
+    return os.path.join(app.config['MAPS_DIR'], map_metadata.filename)
+
+
+# Routes
 
 @app.route('/')
-async def index(request):
+async def index(_):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
-@app.route('/image')
-async def image(request):
-    return_image = await image_context.get_image()
-    image_path = os.path.join(image_context.images_dir, return_image.filename)
-    return await response.file(image_path)
+@app.route('/map')
+async def get_map(_):
+    if await app_ctx.is_current_map_valid():
+        map_metadata = await app_ctx.get_current_map_metadata()
+    else:
+        map_metadata = await app_ctx.get_next_map_metadata()
+        update_maps()
+    return await response.file(path_to_map(map_metadata))
 
 
 if __name__ == '__main__':
