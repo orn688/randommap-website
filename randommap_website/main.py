@@ -16,8 +16,14 @@ from helpers import (
 )
 
 
+CONFIG = {
+    'production': config.ProductionConfig,
+    'development': config.DevelopmentConfig,
+}
+
+
 app = Sanic(__name__)
-app.config.from_object(config.CONFIG[os.environ['APP_CONFIG']])
+app.config.from_object(CONFIG[os.environ['APP_CONFIG']])
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'],
                     db=app.config['REDIS_DB'],
@@ -38,15 +44,16 @@ async def get_random_map_metadata():
 
 async def update_maps():
     current_map_metadata = await app_ctx.get_current_map_metadata()
-    await remove_file_if_exists(path_to_map(current_map_metadata))
-    await app_ctx.set_current_map_metadata(app_ctx.get_next_map_metadata())
+    await remove_file_if_exists(await path_to_map(current_map_metadata))
+    next_map_metadata = await app_ctx.get_next_map_metadata()
+    await app_ctx.set_current_map_metadata(next_map_metadata)
     await app_ctx.set_current_map_valid()
 
     new_map_metadata = await get_random_map_metadata()
     await write_data_to_file(
-        fetch_map_at_coords(mapbox, new_map_metadata.lat, new_map_metadata.lon,
-                            new_map_metadata.zoom),
-        path_to_map(new_map_metadata))
+        await fetch_map_at_coords(mapbox, new_map_metadata.lat,
+                                  new_map_metadata.lon, new_map_metadata.zoom),
+        await path_to_map(new_map_metadata))
     await app_ctx.set_next_map_metadata(new_map_metadata)
 
 
@@ -67,8 +74,8 @@ async def get_map(_):
         map_metadata = await app_ctx.get_current_map_metadata()
     else:
         map_metadata = await app_ctx.get_next_map_metadata()
-        update_maps()
-    return await response.file(path_to_map(map_metadata))
+        await update_maps() # TODO: do this asynchronously
+    return await response.file(await path_to_map(map_metadata))
 
 
 if __name__ == '__main__':

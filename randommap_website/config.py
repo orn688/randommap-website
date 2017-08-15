@@ -5,12 +5,6 @@ Configuration variables for different environments
 import os
 
 
-CONFIG = {
-    'production': 'config.ProductionConfig',
-    'development': 'config.DevelopmentConfig',
-}
-
-
 class BaseConfig(object):
     DEBUG = False
 
@@ -20,7 +14,7 @@ class BaseConfig(object):
 
     APP_PORT = os.environ['APP_PORT']
     APP_DIR = os.environ['APP_DIR']
-    IMAGES_DIR = os.path.join(APP_DIR, 'images')
+    MAPS_DIR = os.path.join(APP_DIR, 'maps')
 
     MAP_EXPIRE_TIME = 60 # seconds
 

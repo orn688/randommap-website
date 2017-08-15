@@ -3,8 +3,8 @@
 ### Redis ###
 dump.rdb
 
-### Temporary image files ###
-*/images/*.png
+### Temporary map files ###
+*/maps/*.png
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
