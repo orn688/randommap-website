@@ -26,4 +26,8 @@ COPY . .
 
 EXPOSE $APP_PORT
 
+# Don't run as root, since Heroku doesn't grant root privileges
+RUN adduser -D randommap
+USER randommap
+
 CMD ["python", "main.py"]
