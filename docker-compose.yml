@@ -4,6 +4,11 @@ services:
   app:
     build:
       context: ./randommap_website
+      args:
+        redis_host: ${REDIS_HOST}
+        redis_port: ${REDIS_PORT}
+        mapbox_access_token: ${MAPBOX_ACCESS_TOKEN}
+        app_config: ${APP_CONFIG}
     depends_on:
       - redis
     volumes:
