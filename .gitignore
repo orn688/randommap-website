@@ -4,7 +4,7 @@
 dump.rdb
 
 ### Temporary map files ###
-*/maps/*.png
+randommap_website/maps/*.png
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
