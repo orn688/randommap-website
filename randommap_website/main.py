@@ -89,7 +89,12 @@ async def get_map(_):
             await set_next_map()
             map_metadata = await app_ctx.get_next_map_metadata()
         await update_maps() # TODO: do this asynchronously
-    return await response.file(path_to_map(map_metadata))
+    return await response.file(
+        path_to_map(map_metadata),
+        headers={
+            'RandomMap-Latitude': map_metadata.lat,
+            'RandomMap-Longitude': map_metadata.lon,
+        })
 
 
 if __name__ == '__main__':
