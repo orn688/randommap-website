@@ -6,7 +6,7 @@ Helper functions to acess the Mapbox API.
 __all__ = ['fetch_map_at_coords']
 
 
-async def fetch_map_at_coords(mapbox_client, lat, lon, zoom):
+def fetch_map_at_coords(mapbox_client, lat, lon, zoom):
     """Loads a map image file at the requested coords and zoom from Mapbox.
 
     Args:
