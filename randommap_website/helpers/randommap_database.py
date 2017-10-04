@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 
-__all__ = ['MapMetadata', 'RandomMapContext']
+__all__ = ['MapMetadata', 'RandomMapDatabase']
 
 
 # Satellite map metadata class.
@@ -9,7 +9,7 @@ MapMetadata = namedtuple('MapMetadata',
                          ['lat', 'lon', 'zoom', 'timestamp', 'filename'])
 
 
-class RandomMapContext:
+class RandomMapDatabase:
     """
     Helper class to manage the Redis connection and map metadata.
     """
