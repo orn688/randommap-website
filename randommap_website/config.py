@@ -13,8 +13,6 @@ class BaseConfig(object):
     REDIS_DB = 0
 
     APP_PORT = os.environ['APP_PORT']
-    APP_DIR = os.environ['APP_DIR']
-    MAPS_DIR = os.path.join(APP_DIR, 'maps')
 
     MAP_EXPIRE_TIME = 60 # seconds
 
