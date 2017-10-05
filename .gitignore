@@ -106,4 +106,5 @@ ENV/
 # mkdocs documentation
 /site
 
-# End of https://www.gitignore.io/api/python
+# secrets
+app.env

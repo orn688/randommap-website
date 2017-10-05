@@ -12,9 +12,9 @@ class BaseConfig(object):
     REDIS_PORT = os.environ['REDIS_PORT']
     REDIS_DB = 0
 
-    APP_PORT = os.environ['APP_PORT']
+    PORT = os.environ['PORT']
 
-    MAP_EXPIRE_TIME = 60 # seconds
+    MAP_TTL = 60 # seconds
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
