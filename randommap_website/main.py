@@ -31,6 +31,11 @@ def index(_):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
+@app.route('/favicon.ico')
+def favicon(_):
+    return response.file('static/images/favicon.ico')
+
+
 @app.route('/map')
 def get_map(_):
     sat_map = model.request_map()

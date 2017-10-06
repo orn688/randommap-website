@@ -14,7 +14,7 @@ class BaseConfig(object):
 
     PORT = os.environ['PORT']
 
-    MAP_TTL = 1 # seconds
+    MAP_TTL = 60 # seconds
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
