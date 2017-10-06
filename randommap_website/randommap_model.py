@@ -28,8 +28,8 @@ class RandomMapModel:
     Representation of a Redis-backed model for RandomMap, with metadata and
     images for current and next satellite maps.
     """
-    CURR_MAP_KEY = 'CURR_MAP_KEY'
-    NEXT_MAP_KEY = 'NEXT_MAP_KEY'
+    CURR_MAP_KEY = 'CURR_MAP'
+    NEXT_MAP_KEY = 'NEXT_MAP'
 
     def __init__(self, redis, map_ttl):
         self.redis = redis
@@ -50,6 +50,7 @@ class RandomMapModel:
         self.redis.hmset(map_key, sat_map.metadata)
         encoded_image = base64.encodestring(sat_map.image).decode('utf-8')
         self.redis.set(self._image_key(map_key), encoded_image)
+
         if expire:
             self.redis.expire(map_key, self.map_ttl)
             self.redis.expire(self._image_key(map_key), self.map_ttl)
@@ -72,8 +73,8 @@ class RandomMapModel:
         next_map = self._get_map(self.NEXT_MAP_KEY)
         if not next_map:
             curr_map = self._new_sat_map()
-            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
             next_map = self._new_sat_map()
+            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
             self._set_map(self.NEXT_MAP_KEY, next_map, expire=False)
         else:
             self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
@@ -87,7 +88,7 @@ class RandomMapModel:
     def _new_sat_map():
         lat, lon = RandomMapModel._choose_coords()
         zoom = 7
-        timestamp = str(int(datetime.now().timestamp()))
+        timestamp = int(datetime.now().timestamp())
         image = RandomMapModel._fetch_image_at_coords(lat, lon, zoom)
         return SatMap(lat, lon, zoom, timestamp, image)
 
@@ -119,6 +120,5 @@ class RandomMapModel:
         if response.status_code == 200:
             return response.content
         else:
-            # TODO: is this the error that should be raised? Think about what
-            # the user will see
+            # TODO: is this the error that should be raised?
             raise RuntimeError('Failed to fetch map image from Mapbox')
