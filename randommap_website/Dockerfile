@@ -3,8 +3,7 @@ FROM python:3.6.1-alpine
 RUN apk update && apk add gcc make musl-dev python3-dev
 
 ENV PORT 5000
-ENV REDIS_HOST localhost
-ENV REDIS_PORT 6379
+ENV REDIS_URL redis://localhost:6379
 ENV APP_CONFIG development
 ENV MAPBOX_ACCESS_TOKEN mapbox_access_token
 

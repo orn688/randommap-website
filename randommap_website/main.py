@@ -17,10 +17,7 @@ CONFIG = {
 app = Sanic(__name__)
 app.config.from_object(CONFIG[os.environ['APP_CONFIG']])
 
-redis = StrictRedis(host=app.config['REDIS_HOST'],
-                    port=app.config['REDIS_PORT'],
-                    db=app.config['REDIS_DB'],
-                    decode_responses=True)
+redis = StrictRedis.from_url(app.config['REDIS_URL'], decode_responses=True)
 model = RandomMapModel(redis, app.config['MAP_TTL'])
 
 
