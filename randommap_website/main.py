@@ -34,12 +34,12 @@ def index(_):
 @app.route('/map')
 def get_map(_):
     sat_map = model.request_map()
-    print(sat_map.__dict__)
-    response_headers = {
+    headers = {
         'RandomMap-Latitude': sat_map.lat,
         'RandomMap-Longitude': sat_map.lon
     }
-    return response.raw(sat_map.image, response_headers)
+    return response.raw(sat_map.image, headers=headers,
+            content_type='image/png')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import random
+import base64
 import mapbox
 from datetime import datetime
 
@@ -23,11 +24,75 @@ class SatMap:
 
 
 class RandomMapModel:
-    CURR_MAP_KEY = "CURR_MAP_KEY"
-    NEXT_MAP_KEY = "NEXT_MAP_KEY"
+    """
+    Representation of a Redis-backed model for RandomMap, with metadata and
+    images for current and next satellite maps.
+    """
+    CURR_MAP_KEY = 'CURR_MAP_KEY'
+    NEXT_MAP_KEY = 'NEXT_MAP_KEY'
+
+    def __init__(self, redis, map_ttl):
+        self.redis = redis
+        self.map_ttl = map_ttl
+
+    def request_map(self):
+        curr_map = self._get_map(self.CURR_MAP_KEY)
+        if curr_map is None:
+            old_next_map = self._get_map(self.NEXT_MAP_KEY)
+            self._update_maps()
+            if old_next_map is None:
+                curr_map = self._get_map(self.CURR_MAP_KEY)
+            else:
+                curr_map = old_next_map
+        return curr_map
+
+    def _set_map(self, map_key, sat_map, expire):
+        self.redis.hmset(map_key, sat_map.metadata)
+        encoded_image = base64.encodestring(sat_map.image).decode('utf-8')
+        self.redis.set(self._image_key(map_key), encoded_image)
+        if expire:
+            self.redis.expire(map_key, self.map_ttl)
+            self.redis.expire(self._image_key(map_key), self.map_ttl)
+
+    def _get_map(self, map_key):
+        map_dict = self.redis.hgetall(map_key)
+        if map_dict:
+            encoded_image = self.redis.get(self._image_key(map_key))
+            if encoded_image:
+                map_dict['image'] = base64.decodestring(
+                        encoded_image.encode('utf-8'))
+                return SatMap(**map_dict)
+        return None
+
+    def _update_maps(self):
+        """
+        Replace the current map with the next map, downloading a new next map
+        if one does not already exist.
+        """
+        next_map = self._get_map(self.NEXT_MAP_KEY)
+        if not next_map:
+            curr_map = self._new_sat_map()
+            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
+            next_map = self._new_sat_map()
+            self._set_map(self.NEXT_MAP_KEY, next_map, expire=False)
+        else:
+            self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
+            self._set_map(self.NEXT_MAP_KEY, self._new_sat_map(), expire=False)
 
     @staticmethod
-    def choose_coords():
+    def _image_key(key):
+        return '{}_IMAGE'.format(key)
+
+    @staticmethod
+    def _new_sat_map():
+        lat, lon = RandomMapModel._choose_coords()
+        zoom = 7
+        timestamp = str(int(datetime.now().timestamp()))
+        image = RandomMapModel._fetch_image_at_coords(lat, lon, zoom)
+        return SatMap(lat, lon, zoom, timestamp, image)
+
+    @staticmethod
+    def _choose_coords():
         """
         Choose a random latitude and longitude within certain ranges.
         Returns: tuple(float, float)
@@ -44,7 +109,7 @@ class RandomMapModel:
         return (lat, lon)
 
     @staticmethod
-    def fetch_image_at_coords(lat, lon, zoom):
+    def _fetch_image_at_coords(lat, lon, zoom):
         """
         Loads a map image file at the requested coords and zoom from Mapbox.
         """
@@ -57,62 +122,3 @@ class RandomMapModel:
             # TODO: is this the error that should be raised? Think about what
             # the user will see
             raise RuntimeError('Failed to fetch map image from Mapbox')
-
-    @staticmethod
-    def new_sat_map():
-        lat, lon = RandomMapModel.choose_coords()
-        zoom = 7
-        timestamp = str(int(datetime.now().timestamp()))
-        image = RandomMapModel.fetch_image_at_coords(lat, lon, zoom)
-        return SatMap(lat, lon, zoom, timestamp, image)
-
-    @staticmethod
-    def image_key(key):
-        return '{}_IMAGE'.format(key)
-
-    def __init__(self, redis, map_ttl):
-        self.redis = redis
-        self.map_ttl = map_ttl
-
-    def set_map(self, map_key, sat_map, expire=False):
-        self.redis.hmset(map_key, sat_map.metadata)
-        self.redis.set(self.image_key(map_key), sat_map.image)
-        if expire:
-            self.redis.expire(map_key, self.map_ttl)
-            self.redis.expire(self.image_key(map_key), self.map_ttl)
-
-    def get_map(self, map_key):
-        map_dict = self.redis.hgetall(map_key)
-        if map_dict:
-            map_dict['image'] = self.redis.get(self.image_key(map_key))
-            if map_dict['image'] is None:
-                raise RuntimeError('image is None')
-            return SatMap(**map_dict)
-        else:
-            return None
-
-    def update_maps(self):
-        """
-        Replace the current map with the next map, downloading a new next
-        map if one does not already exist.
-        """
-        next_map = self.get_map(self.NEXT_MAP_KEY)
-        if not next_map:
-            curr_map = self.new_sat_map()
-            self.set_map(self.CURR_MAP_KEY, curr_map)
-            next_map = self.new_sat_map()
-            self.set_map(self.NEXT_MAP_KEY, next_map)
-        else:
-            self.set_map(self.CURR_MAP_KEY, next_map, expire=True)
-            self.set_map(self.NEXT_MAP_KEY, self.new_sat_map())
-
-    def request_map(self):
-        curr_map = self.get_map(self.CURR_MAP_KEY)
-        if curr_map is None:
-            old_next_map = self.get_map(self.NEXT_MAP_KEY)
-            self.update_maps()
-            if old_next_map is None:
-                curr_map = self.get_map(self.CURR_MAP_KEY)
-            else:
-                curr_map = old_next_map
-        return curr_map
