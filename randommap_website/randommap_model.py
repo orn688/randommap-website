@@ -1,6 +1,7 @@
 import random
 import base64
 import mapbox
+import background
 from datetime import datetime
 
 
@@ -46,6 +47,19 @@ class RandomMapModel:
                 curr_map = old_next_map
         return curr_map
 
+    def _update_maps(self):
+        """
+        Replace the current map with the next map, downloading a new next map
+        if one does not already exist.
+        """
+        next_map = self._get_map(self.NEXT_MAP_KEY)
+        if next_map:
+            self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
+        else:
+            curr_map = self._new_sat_map()
+            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
+        self._set_new_map_bg(self.NEXT_MAP_KEY, expire=False)
+
     def _set_map(self, map_key, sat_map, expire):
         self.redis.hmset(map_key, sat_map.metadata)
         encoded_image = base64.encodestring(sat_map.image).decode('utf-8')
@@ -54,6 +68,15 @@ class RandomMapModel:
         if expire:
             self.redis.expire(map_key, self.map_ttl)
             self.redis.expire(self._image_key(map_key), self.map_ttl)
+
+    def _set_new_map_bg(self, map_key, expire):
+        """Download and save a map in the background (non-blocking)."""
+        @background.task
+        def do_set_map():
+            new_map = self._new_sat_map()
+            self._set_map(map_key, new_map, expire)
+
+        do_set_map()
 
     def _get_map(self, map_key):
         map_dict = self.redis.hgetall(map_key)
@@ -64,21 +87,6 @@ class RandomMapModel:
                         encoded_image.encode('utf-8'))
                 return SatMap(**map_dict)
         return None
-
-    def _update_maps(self):
-        """
-        Replace the current map with the next map, downloading a new next map
-        if one does not already exist.
-        """
-        next_map = self._get_map(self.NEXT_MAP_KEY)
-        if not next_map:
-            curr_map = self._new_sat_map()
-            next_map = self._new_sat_map()
-            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
-            self._set_map(self.NEXT_MAP_KEY, next_map, expire=False)
-        else:
-            self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
-            self._set_map(self.NEXT_MAP_KEY, self._new_sat_map(), expire=False)
 
     @staticmethod
     def _image_key(key):
