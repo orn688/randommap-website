@@ -36,12 +36,13 @@ def favicon(_):
 @app.route('/map')
 def get_map(_):
     sat_map = model.request_map()
-    headers = {
-        'RandomMap-Latitude': sat_map.lat,
-        'RandomMap-Longitude': sat_map.lon
+    randommap_headers = {
+        'Randommap-Latitude': sat_map.lat,
+        'Randommap-Longitude': sat_map.lon,
+        'Randommap-Zoom': sat_map.zoom
     }
-    return response.raw(sat_map.image, headers=headers,
-            content_type='image/png')
+    return response.raw(sat_map.image, headers=randommap_headers,
+                        content_type='image/png')
 
 
 if __name__ == '__main__':
