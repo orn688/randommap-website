@@ -5,6 +5,41 @@ import background
 from datetime import datetime
 
 
+def choose_coords():
+    """
+    Choose a random latitude and longitude within certain ranges.
+    Returns: tuple(float, float)
+    """
+    max_lat = 80
+    min_lat = -80
+    max_lon = 180
+    min_lon = -180
+    # TODO: these aren't right; think about max and min, and distribute
+    # evenly over surface of the spherical Earth
+    lat = (random.random() - 0.5) * (max_lat - min_lat)
+    lon = (random.random() - 0.5) * (max_lon - min_lon)
+
+    return (lat, lon)
+
+
+def fetch_image_at_coords(lat, lon, zoom):
+    """
+    Loads a map image file at the requested coords and zoom from Mapbox.
+    """
+    client = mapbox.Static()
+    response = client.image('mapbox.satellite', lon=lon, lat=lat,
+                            z=zoom, width=1280, height=1280)
+    if response.status_code == 200:
+        return response.content
+    else:
+        # TODO: is this the error that should be raised?
+        raise RuntimeError('Failed to fetch map image from Mapbox')
+
+
+def is_land(lat, lon):
+    return True
+
+
 class SatMap:
     """Contains metadata and the actual image for a satellite map."""
     def __init__(self, lat, lon, zoom, timestamp, image):
@@ -22,6 +57,20 @@ class SatMap:
             'zoom': self.zoom,
             'timestamp': self.timestamp
         }
+
+    @classmethod
+    def random(cls, coord_filter=is_land):
+        """
+        Construct a random SatMap object with the current time as the timestamp
+        and coordinates randomly chosen, but satisfying coord_filter.
+        """
+        lat, lon = choose_coords()
+        while not coord_filter(lat, lon):
+            lat, lon = choose_coords()
+        zoom = 7
+        timestamp = int(datetime.now().timestamp())
+        image = fetch_image_at_coords(lat, lon, zoom)
+        return cls(lat, lon, zoom, timestamp, image)
 
 
 class RandomMapModel:
@@ -56,7 +105,7 @@ class RandomMapModel:
         if next_map:
             self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
         else:
-            curr_map = self._new_sat_map()
+            curr_map = SatMap.random()
             self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
         self._set_new_map_bg(self.NEXT_MAP_KEY, expire=False)
 
@@ -73,7 +122,7 @@ class RandomMapModel:
         """Download and save a map in the background (non-blocking)."""
         @background.task
         def do_set_map():
-            new_map = self._new_sat_map()
+            new_map = SatMap.random()
             self._set_map(map_key, new_map, expire)
 
         do_set_map()
@@ -91,42 +140,3 @@ class RandomMapModel:
     @staticmethod
     def _image_key(key):
         return '{}_IMAGE'.format(key)
-
-    @staticmethod
-    def _new_sat_map():
-        lat, lon = RandomMapModel._choose_coords()
-        zoom = 7
-        timestamp = int(datetime.now().timestamp())
-        image = RandomMapModel._fetch_image_at_coords(lat, lon, zoom)
-        return SatMap(lat, lon, zoom, timestamp, image)
-
-    @staticmethod
-    def _choose_coords():
-        """
-        Choose a random latitude and longitude within certain ranges.
-        Returns: tuple(float, float)
-        """
-        max_lat = 80
-        min_lat = -80
-        max_lon = 180
-        min_lon = -180
-        # TODO: these aren't right; think about max and min, and distribute
-        # evenly over surface of the spherical Earth
-        lat = (random.random() - 0.5) * (max_lat - min_lat)
-        lon = (random.random() - 0.5) * (max_lon - min_lon)
-
-        return (lat, lon)
-
-    @staticmethod
-    def _fetch_image_at_coords(lat, lon, zoom):
-        """
-        Loads a map image file at the requested coords and zoom from Mapbox.
-        """
-        client = mapbox.Static()
-        response = client.image('mapbox.satellite', lon=lon, lat=lat,
-                                z=zoom, width=1280, height=1280)
-        if response.status_code == 200:
-            return response.content
-        else:
-            # TODO: is this the error that should be raised?
-            raise RuntimeError('Failed to fetch map image from Mapbox')
