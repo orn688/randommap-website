@@ -30,7 +30,8 @@ def index(_):
 
 @app.route('/favicon.ico')
 def favicon(_):
-    return response.file('static/images/favicon.ico')
+    return response.file(os.path.join('randommap_website', 'static', 'images',
+                                      'favicon.ico'))
 
 
 @app.route('/map')
