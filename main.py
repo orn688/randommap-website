@@ -4,8 +4,8 @@ import os
 from sanic import Sanic, response
 from redis import StrictRedis
 
-from randommap_model import RandomMapModel
-import config
+from randommap_website.randommap_model import RandomMapModel
+from randommap_website import config
 
 
 CONFIG = {
