@@ -1,0 +1,12 @@
+language: python
+python: "3.6.4"
+install:
+  - pip install pipenv
+  - pipenv install
+script:
+  - pipenv run pytest
+deploy:
+  provider: heroku
+  app: randommap
+  api_key:
+    secure: NyxTagnTuOZMz10Djx4SxxU7G3mIOREhIIgxX9NWRYblx5uWHKJrjFIeRmGcFIGNhEnHlyGXcsPk5v4c2TaEvYb/D15X9WjgkZSku+q7iZVhMQMAETFQ4SKw1ZdZhc9jQH+f7QTcYZQWdOfdTOlpfS8Wb35ZjpLcePmevUipy3Ezko2O23dHoomtza5n1teL1AtXx9IrRhv+L/Rk4IX35kj7g6l4k8VLndNvS2NeTWAeq7ySEWxBKiYusu2spdDs6h/cu5moz7S9zocXDRvkV0bxPQ1OtkenCEnoeJwNahInmy4n8gOQQRisyLtgQyr0j/ny8iUohzaLYo54rEv37g8k7C1veqS4BXtWTNYQfE745wMHIG1SRi89OjoJz3ZPCrdtzDuKwOb8n4rCYN43sBl9RuwTvpOGnsmMfTkHAdipfSThgNoBt2h17Ejbmxs1O1K4Zt0foZZNv7L7UY3hYfsB3IMIpH4bTtwmHeRBX60GuXco2IKU9K8o/aOUKkXE8jgNIJ8ON4z2Nbt7l9JdMqEtAfhiOT9+2cVEgjIt7a6005JCWvRX/BI3qjRYQQc0PBGEfr3Zw4DfxnOMTH2MEcwuRGrliLW3gpbvrd0/Zayi6/hGzxJ1aWasCix+fV0hrlQGh0ZTbmCKobwCxcfzw7BjhkWcE4UzabkP4s5njO4=
