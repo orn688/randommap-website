@@ -1,5 +1,6 @@
-from . import geography
+from .geography import is_land
 
 
 def test_is_land():
-    assert geography.is_land(40.924292, -71.4047197, 7) is True
+    assert is_land(36, -117, 12) is True
+    assert is_land(8, -127, 12) is False

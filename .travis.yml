@@ -4,7 +4,6 @@ install:
   - pip install pipenv
   - pipenv install --dev
 script:
-  - pipenv run pytest
   - pipenv run flake8
   - pipenv run unify --check-only --recursive .
   - pipenv run isort --check-only --diff --recursive .

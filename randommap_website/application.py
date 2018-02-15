@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 import os
 
 from flask import Flask, make_response, send_file
