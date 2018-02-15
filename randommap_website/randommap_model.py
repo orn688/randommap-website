@@ -1,14 +1,13 @@
-import random
 import base64
-import mapbox
-import background
+import logging
 from datetime import datetime
-from logging import getLogger
+
+import background
+import mapbox
 
 from .geography import is_land, random_coords
 
-
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SatMap:
@@ -38,7 +37,7 @@ class RandomMapModel:
     """
     curr_map_key = 'CURR_MAP'
     next_map_key = 'NEXT_MAP'
-    zoom = 7
+    zoom = 9
 
     def __init__(self, redis, map_ttl):
         self.redis = redis

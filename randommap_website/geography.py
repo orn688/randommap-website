@@ -1,13 +1,14 @@
 import os
 import random
+
 import requests
 from PIL import Image
 
 
-def random_coords(min_lat=-90, max_lat=90, min_lon=-180, max_lon=180):
+def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
     if (min_lat < -90 or max_lat > 90 or min_lon < -180 or max_lon > 180
             or min_lat >= max_lat or min_lon >= max_lon):
-        raise ValueError("Bad coordinate bounds arguments.")
+        raise ValueError('Bad coordinate bounds arguments.')
 
     # TODO: these aren't right; think about max and min, and distribute
     # evenly over surface of the spherical Earth
