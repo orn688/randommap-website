@@ -11,7 +11,7 @@ class BaseConfig(object):
     REDIS_URL = os.environ['REDIS_URL']
     PORT = os.environ['PORT']
 
-    MAP_TTL = 60 # seconds
+    MAP_TTL = 0 # seconds
 
 class ProductionConfig(BaseConfig):
     DEBUG = False

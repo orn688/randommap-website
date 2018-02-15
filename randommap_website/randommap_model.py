@@ -3,10 +3,17 @@ import base64
 import mapbox
 import background
 from datetime import datetime
+from logging import getLogger
+
+from .geography import is_land, random_coords
+
+
+logger = getLogger(__name__)
 
 
 class SatMap:
     """Contains metadata and the actual image for a satellite map."""
+
     def __init__(self, lat, lon, zoom, timestamp, image):
         self.lat = lat
         self.lon = lon
@@ -29,36 +36,38 @@ class RandomMapModel:
     Representation of a Redis-backed model for RandomMap, with metadata and
     images for current and next satellite maps.
     """
-    CURR_MAP_KEY = 'CURR_MAP'
-    NEXT_MAP_KEY = 'NEXT_MAP'
+    curr_map_key = 'CURR_MAP'
+    next_map_key = 'NEXT_MAP'
+    zoom = 7
 
     def __init__(self, redis, map_ttl):
         self.redis = redis
         self.map_ttl = map_ttl
 
     def request_map(self):
-        curr_map = self._get_map(self.CURR_MAP_KEY)
-        if curr_map is None:
-            old_next_map = self._get_map(self.NEXT_MAP_KEY)
+        curr_map = self._get_map(self.curr_map_key)
+        if curr_map:
+            return curr_map
+        else:
+            old_next_map = self._get_map(self.next_map_key)
             self._update_maps()
-            if old_next_map is None:
-                curr_map = self._get_map(self.CURR_MAP_KEY)
+            if old_next_map:
+                return old_next_map
             else:
-                curr_map = old_next_map
-        return curr_map
+                return self._get_map(self.curr_map_key)
 
     def _update_maps(self):
         """
         Replace the current map with the next map, downloading a new next map
         if one does not already exist.
         """
-        next_map = self._get_map(self.NEXT_MAP_KEY)
+        next_map = self._get_map(self.next_map_key)
         if next_map:
-            self._set_map(self.CURR_MAP_KEY, next_map, expire=True)
+            self._set_map(self.curr_map_key, next_map, expire=True)
         else:
             curr_map = self._new_sat_map()
-            self._set_map(self.CURR_MAP_KEY, curr_map, expire=True)
-        self._set_new_map_bg(self.NEXT_MAP_KEY, expire=False)
+            self._set_map(self.curr_map_key, curr_map, expire=True)
+        self._set_new_map_bg(self.next_map_key, expire=False)
 
     def _set_map(self, map_key, sat_map, expire):
         self.redis.hmset(map_key, sat_map.metadata)
@@ -84,7 +93,7 @@ class RandomMapModel:
             encoded_image = self.redis.get(self._image_key(map_key))
             if encoded_image:
                 map_dict['image'] = base64.decodestring(
-                        encoded_image.encode('utf-8'))
+                    encoded_image.encode('utf-8'))
                 return SatMap(**map_dict)
         return None
 
@@ -95,10 +104,10 @@ class RandomMapModel:
     @staticmethod
     def _new_sat_map():
         lat, lon = RandomMapModel._choose_coords()
-        zoom = 7
         timestamp = int(datetime.now().timestamp())
-        image = RandomMapModel._fetch_image_at_coords(lat, lon, zoom)
-        return SatMap(lat, lon, zoom, timestamp, image)
+        image = RandomMapModel._fetch_image_at_coords(lat, lon,
+                                                      RandomMapModel.zoom)
+        return SatMap(lat, lon, RandomMapModel.zoom, timestamp, image)
 
     @staticmethod
     def _choose_coords():
@@ -110,12 +119,14 @@ class RandomMapModel:
         min_lat = -80
         max_lon = 180
         min_lon = -180
-        # TODO: these aren't right; think about max and min, and distribute
-        # evenly over surface of the spherical Earth
-        lat = (random.random() - 0.5) * (max_lat - min_lat)
-        lon = (random.random() - 0.5) * (max_lon - min_lon)
 
-        return (lat, lon)
+        for i in range(25):
+            lat, lon = random_coords(min_lat, max_lat, min_lon, max_lon)
+            if is_land(lat, lon, RandomMapModel.zoom):
+                logger.info('Took %s tries to find land', i)
+                return (lat, lon)
+
+        return (41.5300122, -70.6861865)
 
     @staticmethod
     def _fetch_image_at_coords(lat, lon, zoom):

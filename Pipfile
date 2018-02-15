@@ -35,12 +35,13 @@ uritemplate = "==3.0.0"
 "urllib3" = "==1.21.1"
 uvloop = "==0.8.0"
 websockets = "==3.3"
-motionless = "*"
-pytest = "*"
+"autopep8" = "*"
+pillow = "*"
 
 
 [dev-packages]
 
+pytest = "*"
 
 
 [requires]
