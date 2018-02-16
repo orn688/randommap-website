@@ -1,4 +1,5 @@
 import base64
+import logging
 from datetime import datetime
 
 import background
@@ -6,6 +7,8 @@ import mapbox
 
 from .application import app, redis
 from .geography import is_land, random_coords
+
+logger = logging.getLogger('root')
 
 
 class SatMap:
@@ -115,8 +118,8 @@ class RandomMapModel:
         for i in range(25):
             lat, lon = random_coords()
             if is_land(lat, lon, RandomMapModel.zoom):
-                app.logger.info('Took %s %s to find land (%.2f, %.2f)',
-                                i + 1, 'tries' if i else 'try', lat, lon)
+                logger.info('Took %s %s to find land (%.2f, %.2f)',
+                            i + 1, 'tries' if i else 'try', lat, lon)
                 return (lat, lon)
 
         return (41.5300122, -70.6861865)

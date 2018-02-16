@@ -1,23 +1,24 @@
 import os
 
-from flask import make_response, send_file
+from sanic import response
 
 from .application import app
 from .randommap_model import model
 
 
 @app.route('/')
-def index():
-    return '<h1>RandomMap Chrome Extension</h1>'
+def index(_):
+    return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
 @app.route('/favicon.ico')
-def favicon():
-    return send_file(os.path.join('static', 'images', 'favicon.ico'))
+def favicon(_):
+    return response.file(os.path.join('randommap_website', 'static', 'images',
+                                      'favicon.ico'))
 
 
 @app.route('/map')
-def get_map():
+def get_map(_):
     sat_map = model.request_map()
 
     headers = {
@@ -27,6 +28,6 @@ def get_map():
     }
     # Allow client-side JavaScript to access custom headers
     headers['Access-Control-Expose-Headers'] = ', '.join(h for h in headers)
-    headers['Content-Type'] = 'image/png'
 
-    return make_response(sat_map.image, headers)
+    return response.raw(sat_map.image, headers=headers,
+                        content_type='image/png')
