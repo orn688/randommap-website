@@ -6,6 +6,9 @@ from PIL import Image
 
 
 def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
+    """
+    Produces a random lat/lon pair within the given bounds.
+    """
     if (min_lat < -90 or max_lat > 90 or min_lon < -180 or max_lon > 180
             or min_lat >= max_lat or min_lon >= max_lon):
         raise ValueError('Bad coordinate bounds arguments.')
@@ -19,7 +22,18 @@ def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
     return (lat, lon)
 
 
+def rgb2hex(r, g, b):
+    return '0x{:02x}{:02x}{:02x}'.format(r, g, b)
+
+
 def is_land(lat, lon, zoom):
+    """
+    Determines if a given lat/lon is land (specifically, whether
+    a birds-eye view of that position is less than 98% water)
+    by querying the Google Maps API for a static map with land
+    and water having different colors.
+    """
+    # Parameters for Google Maps static image query
     height = 100
     width = 100
     google_logo_height = 20
@@ -31,8 +45,8 @@ def is_land(lat, lon, zoom):
                  f'?center={lat},{lon}'
                  f'&zoom={zoom}'
                  f'&size={width}x{height + 2*google_logo_height}'
-                 f'&style=feature:landscape|color:{_rgb_to_hex(*land_color)}'
-                 f'&style=feature:water|color:{_rgb_to_hex(*water_color)}'
+                 f'&style=feature:landscape|color:{rgb2hex(*land_color)}'
+                 f'&style=feature:water|color:{rgb2hex(*water_color)}'
                  '&style=feature:transit|visibility:off'
                  '&style=feature:poi|visibility:off'
                  '&style=feature:road|visibility:off'
@@ -43,14 +57,10 @@ def is_land(lat, lon, zoom):
     img = Image.open(requests.get(gmaps_url, stream=True).raw).convert('RGB')
     img = img.crop((0, google_logo_height, width, height - google_logo_height))
 
-    total_pixel_count = sum(color[0] for color in img.getcolors())
-    water_pixel_count = sum(color[0] for color in img.getcolors()
-                            if all(abs(color[1][i] - water_color[i]) < 2
+    total_pixel_count = sum(count for count, color in img.getcolors())
+    water_pixel_count = sum(count for count, color in img.getcolors()
+                            if all(abs(color[i] - water_color[i]) < 2
                                    for i in range(3)))
 
     water_ratio = float(water_pixel_count) / total_pixel_count
     return water_ratio < 0.98
-
-
-def _rgb_to_hex(r, g, b):
-    return '0x{:02x}{:02x}{:02x}'.format(r, g, b)
