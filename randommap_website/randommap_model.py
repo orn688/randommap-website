@@ -1,13 +1,11 @@
 import base64
-import logging
 from datetime import datetime
 
 import background
 import mapbox
 
+from .application import app, redis
 from .geography import is_land, random_coords
-
-logger = logging.getLogger(__name__)
 
 
 class SatMap:
@@ -114,15 +112,11 @@ class RandomMapModel:
         Choose a random latitude and longitude within certain ranges.
         Returns: tuple(float, float)
         """
-        max_lat = 80
-        min_lat = -80
-        max_lon = 180
-        min_lon = -180
-
         for i in range(25):
-            lat, lon = random_coords(min_lat, max_lat, min_lon, max_lon)
+            lat, lon = random_coords()
             if is_land(lat, lon, RandomMapModel.zoom):
-                logger.info('Took %s tries to find land', i)
+                app.logger.info('Took %s %s to find land (%.2f, %.2f)',
+                                i + 1, 'tries' if i else 'try', lat, lon)
                 return (lat, lon)
 
         return (41.5300122, -70.6861865)
@@ -140,3 +134,6 @@ class RandomMapModel:
         else:
             # TODO: is this the error that should be raised?
             raise RuntimeError('Failed to fetch map image from Mapbox')
+
+
+model = RandomMapModel(redis, app.config['MAP_TTL'])

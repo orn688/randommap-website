@@ -15,7 +15,9 @@ class BaseConfig(object):
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
+    MAP_TTL = 60
 
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
+    MAP_TTL = 1

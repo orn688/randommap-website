@@ -1,3 +1,4 @@
+import math
 import os
 import random
 
@@ -13,11 +14,11 @@ def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
             or min_lat >= max_lat or min_lon >= max_lon):
         raise ValueError('Bad coordinate bounds arguments.')
 
-    # TODO: these aren't right; think about max and min, and distribute
-    # evenly over surface of the spherical Earth
-    # TODO: if max and min don't have the same absolute value, this won't work
-    lat = (random.random() - 0.5) * (max_lat - min_lat)
-    lon = (random.random() - 0.5) * (max_lon - min_lon)
+    # Source: https://www.jasondavies.com/maps/random-points/
+    min_x = 0.5 * (1 - math.sin(math.pi * min_lat / 180))
+    max_x = 0.5 * (1 - math.sin(math.pi * max_lat / 180))
+    lat = (180 / math.pi)*math.acos(2*random.uniform(min_x, max_x) - 1) - 90
+    lon = random.uniform(min_lon, max_lon)
 
     return (lat, lon)
 
