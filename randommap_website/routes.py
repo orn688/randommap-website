@@ -28,6 +28,7 @@ def get_map(_):
     }
     # Allow client-side JavaScript to access custom headers
     headers['Access-Control-Expose-Headers'] = ', '.join(h for h in headers)
+    headers['Cache-Control'] = 'max-age={}'.format(app.config['MAP_TTL'])
 
     return response.raw(sat_map.image, headers=headers,
                         content_type='image/png')
