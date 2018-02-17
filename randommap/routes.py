@@ -4,9 +4,6 @@ from . import app
 from .db import get_current_map
 
 
-app.static('/favicon.ico', './randommap/static/images/favicon.ico')
-
-
 @app.route('/')
 async def index(_):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
@@ -27,3 +24,6 @@ async def map(_):
 
     return response.raw(sat_map.image, headers=headers,
                         content_type='image/png')
+
+
+app.static('/favicon.ico', './randommap/static/images/favicon.ico')

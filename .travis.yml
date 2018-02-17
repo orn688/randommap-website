@@ -6,7 +6,6 @@ install:
 script:
   - pipenv run flake8
   - pipenv run unify --check-only --recursive .
-  - pipenv run isort --check-only --diff --recursive .
 deploy:
   provider: heroku
   app: randommap
