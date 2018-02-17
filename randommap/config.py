@@ -19,7 +19,9 @@ class BaseConfig(object):
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
-    MAP_TTL = 60
+    ZOOM = int(os.environ.get('ZOOM', 9))
+    MAP_TTL = int(os.environ.get('MAP_TTL', 60))
+    RETINA_IMAGES = bool(os.environ.get('RETINA_IMAGES', True))
 
 
 class DevelopmentConfig(BaseConfig):
