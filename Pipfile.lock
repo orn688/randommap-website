@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e220f9594047dbdd722bc78c3b2e4f69b71cb718d330e43460b1bfcbf01c5317"
+            "sha256": "6aa581d85e8272e29c5de5962096ca3277a2c883ba0a17f57225ae538014ad21"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -36,26 +36,19 @@
             ],
             "version": "==0.3.2"
         },
-        "background": {
-            "hashes": [
-                "sha256:8f64df9b1f1d4f91603f16d25f79691fa87eff62244d631b8b69cf121396b725",
-                "sha256:b2fb684c150aaf1c4716686e7bd0e81a5c13db1852e7af48c01b98a3486a84c6"
-            ],
-            "version": "==0.1.1"
-        },
         "boto3": {
             "hashes": [
-                "sha256:9312b3aa24888ab6436fcc41c56e2231dfdd1864879dabaac042256cbe292dbc",
-                "sha256:f773243adc1d2264fe87b75fa2f5e696ab042ac7a9bf0cae8a2045e32e325044"
+                "sha256:ae0ae1c11f4a78bd69a43c8b8a9bdb6569c3b497331f5892cc3cdb95f6f7f42b",
+                "sha256:65d7b85d213b63f4540b259b5a9780db8b0cbdcb5d748545d1eb19992910587b"
             ],
-            "version": "==1.5.30"
+            "version": "==1.5.31"
         },
         "botocore": {
             "hashes": [
-                "sha256:2b3761dfe3a2a388859ee2663c8f0183746b83f4ac23e8cdb164012bbbe31f28",
-                "sha256:02bdae93a167bbbd8053099300f14dea648abaa2031ffd29b4733ed253ed2458"
+                "sha256:80ccf6d2145a19b2b0354df7522ab7f8ef4e2793b5e187ea10cb5c4d8cbbd6a3",
+                "sha256:8f91b648a216dc945783d1539c013fc08a9e65ecc4fc5aae017bdd5961fd3468"
             ],
-            "version": "==1.8.44"
+            "version": "==1.8.45"
         },
         "cachecontrol": {
             "hashes": [
@@ -105,13 +98,6 @@
                 "sha256:51e64ef2ebfb29cae1faa133b3710143496eca21c530f3f71424d77687764274"
             ],
             "version": "==0.14"
-        },
-        "futures": {
-            "hashes": [
-                "sha256:c4884a65654a7c45435063e14ae85280eb1f111d94e542396717ba9828c4337f",
-                "sha256:51ecb45f0add83c806c68e4b06106f90db260585b25ef2abfcda0bd95c0132fd"
-            ],
-            "version": "==3.1.1"
         },
         "httptools": {
             "hashes": [

@@ -1,25 +1,20 @@
-import os
-
 from sanic import response
 
-from .application import app
-from .randommap_model import model
+from . import app
+from .db import get_current_map
+
+
+app.static('/favicon.ico', './randommap/static/images/favicon.ico')
 
 
 @app.route('/')
-def index(_):
+async def index(_):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
-@app.route('/favicon.ico')
-def favicon(_):
-    return response.file(os.path.join('randommap_website', 'static', 'images',
-                                      'favicon.ico'))
-
-
 @app.route('/map')
-def get_map(_):
-    sat_map = model.request_map()
+async def map(_):
+    sat_map = await get_current_map()
 
     headers = {
         'Randommap-Latitude': sat_map.lat,

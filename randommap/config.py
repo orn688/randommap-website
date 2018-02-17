@@ -1,7 +1,9 @@
 """
-Configuration variables for different environments
+Configuration variables for different environments.
 """
 import os
+
+from . import app
 
 
 class BaseConfig(object):
@@ -10,7 +12,9 @@ class BaseConfig(object):
     REDIS_URL = os.environ['REDIS_URL']
     PORT = int(os.environ['PORT'])
 
+    ZOOM = 9
     MAP_TTL = 60  # seconds
+    RETINA_IMAGES = True
 
 
 class ProductionConfig(BaseConfig):
@@ -21,3 +25,10 @@ class ProductionConfig(BaseConfig):
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     MAP_TTL = 1
+    RETINA_IMAGES = False
+
+
+app.config.from_object({
+    'production': ProductionConfig,
+    'development': DevelopmentConfig,
+}.get(os.environ['APP_CONFIG'], DevelopmentConfig))

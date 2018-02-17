@@ -7,12 +7,11 @@ name = "pypi"
 
 [packages]
 
-background = "*"
 requests = "*"
 redis = "*"
 mapbox = "*"
-pillow = "*"
-sanic = "*"
+Pillow = "*"
+Sanic = "*"
 
 
 [dev-packages]

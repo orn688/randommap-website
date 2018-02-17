@@ -4,9 +4,6 @@
 ### Redis ###
 dump.rdb
 
-### Temporary map files ###
-randommap_website/maps/*.png
-
 ### Python ###
 # Byte-compiled / optimized / DLL files
 .pytest_cache/
