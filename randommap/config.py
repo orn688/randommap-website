@@ -3,7 +3,7 @@ Configuration variables for different environments.
 """
 import os
 
-from . import app
+from . import application
 
 
 class BaseConfig(object):
@@ -28,7 +28,7 @@ class DevelopmentConfig(BaseConfig):
     RETINA_IMAGES = False
 
 
-app.config.from_object({
+application.config.from_object({
     'production': ProductionConfig,
     'development': DevelopmentConfig,
 }.get(os.environ['APP_CONFIG'], DevelopmentConfig))

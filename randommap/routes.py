@@ -1,15 +1,15 @@
 from sanic import response
 
-from . import app
+from . import application
 from .db import get_current_map
 
 
-@app.route('/')
+@application.route('/')
 async def index(_):
     return response.html('<h1>RandomMap Chrome Extension</h1>')
 
 
-@app.route('/map')
+@application.route('/map')
 async def map(_):
     sat_map = await get_current_map()
 
@@ -20,10 +20,10 @@ async def map(_):
     }
     # Allow client-side JavaScript to access custom headers
     headers['Access-Control-Expose-Headers'] = ', '.join(h for h in headers)
-    headers['Cache-Control'] = 'max-age={}'.format(app.config['MAP_TTL'])
+    headers['Cache-Control'] = 'max-age={}'.format(application.config['MAP_TTL'])
 
     return response.raw(sat_map.image, headers=headers,
                         content_type='image/png')
 
 
-app.static('/favicon.ico', './randommap/static/images/favicon.ico')
+application.static('/favicon.ico', './randommap/static/images/favicon.ico')

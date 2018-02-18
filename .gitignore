@@ -16,6 +16,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+requirements.txt
 env/
 build/
 develop-eggs/
@@ -107,3 +108,8 @@ ENV/
 
 # secrets
 app.env
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

@@ -6,19 +6,19 @@ from datetime import datetime
 import mapbox
 from redis import StrictRedis
 
-from . import app
+from . import application
 from .geography import is_land, random_coords
 from .models import SatMap
 
 __all__ = ['get_current_map']
 
 logger = logging.getLogger('root')
-redis = StrictRedis.from_url(app.config['REDIS_URL'], decode_responses=True)
+redis = StrictRedis.from_url(application.config['REDIS_URL'], decode_responses=True)
 
 CURR_MAP_KEY = 'CURR_MAP'
 NEXT_MAP_KEY = 'NEXT_MAP'
-MAP_TTL = app.config['MAP_TTL']
-ZOOM = app.config['ZOOM']
+MAP_TTL = application.config['MAP_TTL']
+ZOOM = application.config['ZOOM']
 
 
 async def get_current_map():
@@ -59,7 +59,7 @@ async def save_map_to_db(map_key, sat_map, expire):
     redis.set(image_key(map_key), encoded_image)
 
     if expire:
-        redis.expire(map_key, app.config['MAP_TTL'])
+        redis.expire(map_key, application.config['MAP_TTL'])
         redis.expire(image_key(map_key), MAP_TTL)
 
 
@@ -67,6 +67,8 @@ async def fetch_new_map_bg(map_key, expire):
     """Download and save a map in the background (non-blocking)."""
     async def do_fetch_new_map():
         new_map = await fetch_new_sat_map()
+        import time
+        time.sleep()
         await save_map_to_db(map_key, new_map, expire)
     asyncio.ensure_future(do_fetch_new_map())
 
@@ -86,7 +88,7 @@ async def fetch_new_sat_map():
     lat, lon = choose_coords()
     timestamp = int(datetime.now().timestamp())
     image = await fetch_image_at_coords(lat, lon, ZOOM,
-                                        app.config['RETINA_IMAGES'])
+                                        application.config['RETINA_IMAGES'])
     return SatMap(lat, lon, ZOOM, timestamp, image)
 
 

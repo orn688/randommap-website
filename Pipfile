@@ -10,8 +10,9 @@ name = "pypi"
 requests = "*"
 redis = "*"
 mapbox = "*"
-Pillow = "*"
-Sanic = "*"
+pillow = "*"
+sanic = "*"
+background = "*"
 
 
 [dev-packages]
@@ -20,6 +21,7 @@ pytest = "*"
 "flake8" = "*"
 unify = "*"
 isort = "*"
+rope = "*"
 
 
 [requires]

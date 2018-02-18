@@ -1,3 +1,3 @@
-from randommap import app
+from randommap import application
 
-app.run(host='0.0.0.0', port=app.config['PORT'])
+application.run(host='0.0.0.0', port=application.config['PORT'])

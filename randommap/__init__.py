@@ -1,8 +1,8 @@
 from sanic import Sanic
 
-__all__ = ['app']
+__all__ = ['application']
 
-app = Sanic(__name__)
+application = Sanic(__name__)
 
 from .config import *  # noqa
 from .routes import *  # noqa
