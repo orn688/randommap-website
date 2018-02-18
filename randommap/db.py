@@ -1,8 +1,8 @@
-import asyncio
 import base64
 import logging
 from datetime import datetime
 
+import background
 import mapbox
 from redis import StrictRedis
 
@@ -13,7 +13,8 @@ from .models import SatMap
 __all__ = ['get_current_map']
 
 logger = logging.getLogger('root')
-redis = StrictRedis.from_url(application.config['REDIS_URL'], decode_responses=True)
+redis = StrictRedis.from_url(application.config['REDIS_URL'],
+                             decode_responses=True)
 
 CURR_MAP_KEY = 'CURR_MAP'
 NEXT_MAP_KEY = 'NEXT_MAP'
@@ -46,14 +47,14 @@ async def update_maps():
     """
     next_map = await get_map_from_db(NEXT_MAP_KEY)
     if next_map:
-        await save_map_to_db(CURR_MAP_KEY, next_map, expire=True)
+        save_map_to_db(CURR_MAP_KEY, next_map, expire=True)
     else:
         curr_map = await fetch_new_sat_map()
-        await save_map_to_db(CURR_MAP_KEY, curr_map, expire=True)
+        save_map_to_db(CURR_MAP_KEY, curr_map, expire=True)
     await fetch_new_map_bg(NEXT_MAP_KEY, expire=False)
 
 
-async def save_map_to_db(map_key, sat_map, expire):
+def save_map_to_db(map_key, sat_map, expire):
     redis.hmset(map_key, sat_map.metadata)
     encoded_image = base64.encodestring(sat_map.image).decode('utf-8')
     redis.set(image_key(map_key), encoded_image)
@@ -65,12 +66,11 @@ async def save_map_to_db(map_key, sat_map, expire):
 
 async def fetch_new_map_bg(map_key, expire):
     """Download and save a map in the background (non-blocking)."""
-    async def do_fetch_new_map():
-        new_map = await fetch_new_sat_map()
-        import time
-        time.sleep()
-        await save_map_to_db(map_key, new_map, expire)
-    asyncio.ensure_future(do_fetch_new_map())
+    @background.task
+    def do_fetch_new_map():
+        new_map = fetch_new_sat_map()
+        save_map_to_db(map_key, new_map, expire)
+    do_fetch_new_map()
 
 
 async def get_map_from_db(map_key):
@@ -84,11 +84,11 @@ async def get_map_from_db(map_key):
     return None
 
 
-async def fetch_new_sat_map():
+def fetch_new_sat_map():
     lat, lon = choose_coords()
     timestamp = int(datetime.now().timestamp())
-    image = await fetch_image_at_coords(lat, lon, ZOOM,
-                                        application.config['RETINA_IMAGES'])
+    image = fetch_image_at_coords(lat, lon, ZOOM,
+                                  application.config['RETINA_IMAGES'])
     return SatMap(lat, lon, ZOOM, timestamp, image)
 
 
@@ -107,7 +107,7 @@ def choose_coords():
     return (41.5300122, -70.6861865)
 
 
-async def fetch_image_at_coords(lat, lon, zoom, retina=True):
+def fetch_image_at_coords(lat, lon, zoom, retina=True):
     """
     Loads a map image file at the requested coords and zoom from Mapbox.
     """
