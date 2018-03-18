@@ -58,10 +58,13 @@ def is_land(lat, lon, zoom):
     img = Image.open(requests.get(gmaps_url, stream=True).raw).convert('RGB')
     img = img.crop((0, google_logo_height, width, height - google_logo_height))
 
-    total_pixel_count = sum(count for count, color in img.getcolors())
-    water_pixel_count = sum(count for count, color in img.getcolors()
-                            if all(abs(color[i] - water_color[i]) < 2
-                                   for i in range(3)))
+    total_pixel_count = img.width * img.height
 
-    water_ratio = float(water_pixel_count) / total_pixel_count
+    def is_roughly_water_color(color):
+        return all(abs(color[i] - water_color[i] < 2) for i in range(3))
+
+    water_pixel_count = sum(count for count, color in img.getcolors()
+                            if is_roughly_water_color(color))
+
+    water_ratio = water_pixel_count / total_pixel_count
     return water_ratio < 0.98
