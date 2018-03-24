@@ -60,7 +60,7 @@ def save_map_to_db(map_key, sat_map, expire):
     redis.set(image_key(map_key), encoded_image)
 
     if expire:
-        redis.expire(map_key, application.config['MAP_TTL'])
+        redis.expire(map_key, MAP_TTL)
         redis.expire(image_key(map_key), MAP_TTL)
 
 
@@ -87,8 +87,8 @@ async def get_map_from_db(map_key):
 def fetch_new_sat_map():
     lat, lon = choose_coords()
     timestamp = int(datetime.now().timestamp())
-    image = fetch_image_at_coords(lat, lon, ZOOM,
-                                  application.config['RETINA_IMAGES'])
+    image = fetch_image_at_coords(
+        lat, lon, ZOOM, application.config['RETINA_IMAGES'])
     return SatMap(lat, lon, ZOOM, timestamp, image)
 
 
@@ -112,9 +112,14 @@ def fetch_image_at_coords(lat, lon, zoom, retina=True):
     Loads a map image file at the requested coords and zoom from Mapbox.
     """
     client = mapbox.Static()
-    response = client.image('mapbox.satellite', lon=lon, lat=lat,
-                            z=zoom, width=1280, height=1280, retina=retina)
-    if response.status_code == 200:
-        return response.content
-    else:
-        raise Exception('Failed to fetch map image from Mapbox')
+    response = client.image(
+        'mapbox.satellite',
+        lon=lon,
+        lat=lat,
+        z=zoom,
+        width=1280,
+        height=1280,
+        retina=retina,
+    )
+    assert response.status_code == 200, 'Failed to fetch map image from Mapbox'
+    return response.content
