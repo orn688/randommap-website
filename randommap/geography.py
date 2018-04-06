@@ -10,9 +10,9 @@ def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
     """
     Produces a random lat/lon pair within the given bounds.
     """
-    if (min_lat < -90 or max_lat > 90 or min_lon < -180 or max_lon > 180
-            or min_lat >= max_lat or min_lon >= max_lon):
-        raise ValueError('Bad coordinate bounds arguments.')
+    lats_ok = -90 < min_lat <= max_lat < 90
+    lons_ok = -180 < min_lon <= max_lon < 180
+    assert lats_ok and lons_ok, 'Bad coordinate bounds arguments'
 
     # Source: https://www.jasondavies.com/maps/random-points/
     min_x = 0.5 * (1 - math.sin(math.pi * min_lat / 180))
