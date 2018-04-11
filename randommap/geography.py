@@ -11,7 +11,7 @@ def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
     Produces a random lat/lon pair within the given bounds.
     """
     lats_ok = -90 < min_lat <= max_lat < 90
-    lons_ok = -180 < min_lon <= max_lon < 180
+    lons_ok = -180 <= min_lon <= max_lon <= 180
     assert lats_ok and lons_ok, 'Bad coordinate bounds arguments'
 
     # Source: https://www.jasondavies.com/maps/random-points/
