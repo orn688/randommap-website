@@ -49,7 +49,7 @@ async def update_maps():
     if next_map:
         save_map_to_db(CURR_MAP_KEY, next_map, expire=True)
     else:
-        curr_map = await fetch_new_sat_map()
+        curr_map = fetch_new_sat_map()
         save_map_to_db(CURR_MAP_KEY, curr_map, expire=True)
     await fetch_new_map_bg(NEXT_MAP_KEY, expire=False)
 
