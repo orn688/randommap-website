@@ -9,8 +9,8 @@ from . import application
 class BaseConfig(object):
     DEBUG = False
 
-    REDIS_URL = os.environ['REDIS_URL']
-    PORT = int(os.environ['PORT'])
+    REDIS_URL = os.environ["REDIS_URL"]
+    PORT = int(os.environ["PORT"])
 
     ZOOM = 9
     MAP_TTL = 60  # seconds
@@ -28,7 +28,8 @@ class DevelopmentConfig(BaseConfig):
     RETINA_IMAGES = False
 
 
-application.config.from_object({
-    'production': ProductionConfig,
-    'development': DevelopmentConfig,
-}.get(os.environ['APP_CONFIG'], DevelopmentConfig))
+application.config.from_object(
+    {"production": ProductionConfig, "development": DevelopmentConfig}.get(
+        os.environ["APP_CONFIG"], DevelopmentConfig
+    )
+)

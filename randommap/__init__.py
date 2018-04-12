@@ -1,6 +1,6 @@
 from sanic import Sanic
 
-__all__ = ['application']
+__all__ = ["application"]
 
 application = Sanic(__name__)
 
