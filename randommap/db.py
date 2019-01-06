@@ -106,7 +106,7 @@ def choose_coords():
             )
             return (lat, lon)
 
-    return (41.5300122, -70.6861865)
+    return (41.530_012_2, -70.686_186_5)
 
 
 def fetch_image_at_coords(lat, lon, zoom, retina=True):
