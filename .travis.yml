@@ -4,8 +4,7 @@ install:
   - pip install pipenv
   - pipenv install --dev
 script:
-  - pipenv run flake8
-  - pipenv run unify --check-only --recursive .
+  - make lint
 deploy:
   provider: heroku
   app: randommap
