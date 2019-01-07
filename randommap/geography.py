@@ -1,8 +1,8 @@
+import io
 import math
-import os
 import random
 
-import requests
+import mapbox
 from PIL import Image
 
 
@@ -23,47 +23,43 @@ def random_coords(min_lat=-75, max_lat=75, min_lon=-180, max_lon=180):
     return (lat, lon)
 
 
-def rgb2hex(r, g, b):
-    return "0x{:02x}{:02x}{:02x}".format(r, g, b)
+def is_roughly_water_color(color):
+    """Water is black, land is white."""
+    r, g, b, *_ = color
+    average_pixel_value = (r + g + b) / 3
+    return average_pixel_value <= 128
 
 
 def is_land(lat, lon, zoom):
     """
-    Determines if a given lat/lon is land (specifically, whether
-    a birds-eye view of that position is less than 98% water)
-    by querying the Google Maps API for a static map with land
-    and water having different colors.
+    Determines if a given lat/lon is land (specifically, whether a birds-eye
+    view of that position is less than 98% water) by querying Mapbox for a
+    static map with land and water having different colors.
     """
-    # Parameters for Google Maps static image query
-    height = 100
-    width = 100
-    google_logo_height = 20
-    water_color = (0, 0, 255)
-    land_color = (0, 255, 0)
-    gmaps_api_key = os.environ["GOOGLE_MAPS_API_KEY"]
+    client = mapbox.StaticStyle()
+    dimension = 100
+    # Mapbox static maps include a logo in the bottom left, so we request a
+    # slightly taller than desired image and then crop out the top and bottom
+    # (so the resulting image is still square).
+    logo_size = 20
 
-    gmaps_url = (
-        "http://maps.googleapis.com/maps/api/staticmap"
-        f"?center={lat},{lon}"
-        f"&zoom={zoom}"
-        f"&size={width}x{height + 2*google_logo_height}"
-        f"&style=feature:landscape|color:{rgb2hex(*land_color)}"
-        f"&style=feature:water|color:{rgb2hex(*water_color)}"
-        "&style=feature:transit|visibility:off"
-        "&style=feature:poi|visibility:off"
-        "&style=feature:road|visibility:off"
-        "&style=feature:administrative|visibility:off"
-        "&style=element:labels|visibility:off"
-        f"&key={gmaps_api_key}"
+    response = client.image(
+        username="orn688",
+        style_id="cjqlx253r2wcl2sms5lxw13rh",
+        lat=lat,
+        lon=lon,
+        zoom=zoom,
+        height=dimension + 2 * logo_size,
+        width=dimension,
     )
+    if response.status_code != 200:
+        raise Exception("Failed to fetch map image from Mapbox for detecting land")
 
-    img = Image.open(requests.get(gmaps_url, stream=True).raw).convert("RGB")
-    img = img.crop((0, google_logo_height, width, height - google_logo_height))
-
-    total_pixel_count = img.width * img.height
-
-    def is_roughly_water_color(color):
-        return all(abs(color[i] - water_color[i] < 2) for i in range(3))
+    img = Image.open(io.BytesIO(response.content)).convert("RGBA")
+    width, height = img.size
+    diff = (height - width) / 2
+    img = img.crop((0, diff, width, height - diff))
+    total_pixel_count = width ** 2
 
     water_pixel_count = sum(
         count for count, color in img.getcolors() if is_roughly_water_color(color)

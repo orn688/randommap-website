@@ -98,7 +98,7 @@ def choose_coords():
     Choose a random latitude and longitude within certain ranges.
     Returns: tuple(float, float)
     """
-    for i in range(25):
+    for i in range(10):
         lat, lon = random_coords()
         if is_land(lat, lon, ZOOM):
             logger.info(
@@ -106,7 +106,7 @@ def choose_coords():
             )
             return (lat, lon)
 
-    return (41.530_012_2, -70.686_186_5)
+    return (46.777_488_429_028_55, 26.672_213_498_412_19)
 
 
 def fetch_image_at_coords(lat, lon, zoom, retina=True):
