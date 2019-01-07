@@ -20,6 +20,7 @@ class BaseConfig(object):
 class ProductionConfig(BaseConfig):
     DEBUG = False
     RETINA_IMAGES = False
+    MAP_TTL = 120  # seconds
 
 
 class DevelopmentConfig(BaseConfig):
